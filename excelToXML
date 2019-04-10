@@ -1,0 +1,48 @@
+import xlrd
+from xml.dom import minidom
+
+
+def convert(excel_path, resource_path):
+    workbook = xlrd.open_workbook(excel_path)
+
+    # Get the first sheet of the workbook
+    worksheet = workbook.sheet_by_index(0)
+
+    # For all the columns perform this
+    for c in range(worksheet.ncols):
+        if c != 0:
+            # do this for every column
+            doc = minidom.Document()
+
+            resources = doc.createElement('resources')
+            doc.appendChild(resources)
+
+            for r in range(worksheet.nrows):
+                cell_type = worksheet.cell_type(r, c)
+                if cell_type in (
+                        xlrd.XL_CELL_BLANK, xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_ERROR):
+                    print(1)
+                elif worksheet.cell_value(r, c) == " ":
+                    print(2)
+                else:
+                    leaf = doc.createElement('string')
+                    text = doc.createTextNode(str(worksheet.cell_value(r, c)))
+                    leaf.appendChild(text)
+                    leaf.setAttribute('name', str(worksheet.cell_value(r, 0)))
+                    resources.appendChild(leaf)
+
+            # pretty xml formatting
+            xml_str = doc.toprettyxml(indent="  ")
+            with open(resource_path + '/strings_' + worksheet.cell_value(0, c) + '.xml', "w+") as file:
+                file.write(xml_str)
+                file.close()
+
+
+def main():
+    excel_path = input("Enter the Excel Sheet path : ")
+    resource_path = input("Enter the path where you want to save your converted xml : ")
+    convert(excel_path, resource_path)
+
+
+if __name__ == "__main__":
+    main()
